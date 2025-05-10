@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code Scanner</title>
+    <!-- <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script> -->
+    <script src="html5-qrcode.min.js"></script>
+</head>
+<body>
+    <h2>QR Code Scanner</h2>
+    <div id="qr-reader" style="width: 300px;"></div>
+    <button onclick="startScan()">Start Scanning</button>
+    <button onclick="copyJSON()">Copy JSON</button>
+    <pre id="output"></pre>
+
+    <script>
+        let sourceData = [
+            {
+                entryId: "ET-123",
+                checkInEquipments: ["TXGU5770050", "EQ999"]
+                // No rfid field initially
+            },
+            {
+                entryId: "ET-456",
+                checkInEquipments: ["EQ456"]
+            }
+        ];
+
+        let currentStep = "equipment";
+        let matchedEntry = null;
+
+        function startScan() {
+            document.getElementById("output").textContent = "Initializing camera...";
+            const html5QrCode = new Html5Qrcode("qr-reader");
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                qrCodeMessage => {
+                    html5QrCode.stop().then(() => {
+                        handleScan(qrCodeMessage);
+                    });
+                },
+                errorMessage => {
+                    // Silent error handling
+                }
+            );
+        }
+
+        function handleScan(data) {
+            const output = document.getElementById("output");
+
+            if (currentStep === "equipment") {
+                output.textContent = `Scanned EQUIPMENT: ${data}`;
+                matchedEntry = sourceData.find(entry => entry.checkInEquipments.includes(data));
+                if (matchedEntry) {
+                    output.textContent += `\nMatch found: Entry ID ${matchedEntry.entryId}`;
+                    currentStep = "rfid";
+                    setTimeout(startScan, 2000);
+                } else {
+                    output.textContent += `\nNo matching entry found. Try again.`;
+                    setTimeout(startScan, 2000);
+                }
+            } else if (currentStep === "rfid") {
+                output.textContent += `\nScanned RFID: ${data}`;
+                matchedEntry.rfid = data; // Dynamically add the `rfid` key
+                output.textContent += `\nUpdated Entry:\n${JSON.stringify(matchedEntry, null, 2)}`;
+                output.textContent += `\n\nUpdated JSON:\n${JSON.stringify(sourceData, null, 2)}`;
+                currentStep = "equipment";
+                matchedEntry = null;
+                setTimeout(startScan, 3000);
+            }
+        }
+
+        function copyJSON() {
+            const jsonText = JSON.stringify(sourceData, null, 2);
+            navigator.clipboard.writeText(jsonText).then(() => {
+                alert("JSON copied to clipboard!");
+            }).catch(err => {
+                alert("Failed to copy JSON.");
+            });
+        }
+    </script>
+</body>
+</html>
