@@ -22,8 +22,11 @@
 
     #qr-reader {
       width: 100%;
+      max-width: 320px;
+      height: 180px; /* smaller height */
       margin: 1em auto;
-      border: 1px solid #00bcd4;
+      border: 2px solid #00bcd4;
+      border-radius: 12px;
       background-color: rgba(0, 0, 0, 0.4);
     }
 
@@ -190,16 +193,19 @@
 
     function addToHistory(entryId, rfid) {
       const historyDiv = document.getElementById("history");
-
+    
       if (matchedEntries.length === 1) {
         historyDiv.innerHTML = "";
       }
-
+    
       const record = document.createElement("div");
       record.className = "record";
       record.innerHTML = `<strong>Entry ID:</strong> ${entryId}<br><strong>RFID:</strong> ${rfid}`;
-      historyDiv.appendChild(record);
+    
+      // Insert at the top
+      historyDiv.prepend(record);
     }
+
   </script>
 </body>
 </html>
