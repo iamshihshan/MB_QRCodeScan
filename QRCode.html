@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mobile QR Scanner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>QR Code Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       margin: 0;
       font-family: "Segoe UI", sans-serif;
       background: linear-gradient(to bottom, #0a1e3a, #000);
       color: #fff;
-      text-align: center;
       padding: 1em;
+      text-align: center;
     }
 
     h2 {
@@ -21,10 +21,9 @@
     #qr-reader {
       width: 100%;
       max-width: 320px;
-      margin: auto;
+      margin: 1em auto;
       border: 2px solid #00c3ff;
       border-radius: 10px;
-      margin-bottom: 1em;
     }
 
     input[type="file"], button {
@@ -64,21 +63,42 @@
       max-width: 90vw;
       overflow-x: auto;
     }
+
+    #history {
+      text-align: left;
+      margin: 1em auto;
+      max-width: 90vw;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1em;
+      border-radius: 10px;
+    }
+
+    .record {
+      border-bottom: 1px solid #00c3ff;
+      padding: 0.5em 0;
+    }
+
+    .record:last-child {
+      border-bottom: none;
+    }
   </style>
 </head>
 <body>
-  <h2>📷 Secure QR Code Scanner</h2>
+  <h2>📷 QR + RFID Scanner</h2>
 
   <input type="file" accept=".json" onchange="loadJsonFile(event)">
   <div id="qr-reader"></div>
-
   <button onclick="startScan()">Start Scanning</button>
-  <button onclick="copyJSON()">Copy JSON</button>
+  <button onclick="copyJSON()">Copy Matched JSON</button>
 
   <pre id="output">Please upload JSON to begin.</pre>
 
-  <script src="./html5-qrcode.min.js"></script> <!-- Must exist in same folder -->
+  <h3>📜 Scan History</h3>
+  <div id="history">
+    <p>No scans yet.</p>
+  </div>
 
+  <script src="./html5-qrcode.min.js"></script> <!-- must be present locally -->
   <script>
     let sourceData = [];
     let matchedEntries = [];
@@ -95,6 +115,7 @@
           sourceData = JSON.parse(e.target.result);
           matchedEntries = [];
           document.getElementById("output").textContent = "✅ JSON loaded. Ready to scan.";
+          document.getElementById("history").innerHTML = "<p>No scans yet.</p>";
         } catch (err) {
           document.getElementById("output").textContent = "❌ Failed to parse JSON.";
         }
@@ -145,8 +166,9 @@
       } else if (currentStep === "rfid") {
         output.textContent += `\n🔐 Scanned RFID: ${data}`;
         matchedEntry.rfid = data;
-        matchedEntries.push(matchedEntry);
+        matchedEntries.push({ ...matchedEntry }); // Save a copy
         output.textContent += `\n✅ RFID added to entry.\n\nUpdated Entry:\n${JSON.stringify(matchedEntry, null, 2)}`;
+        addToHistory(matchedEntry.entryId, data);
         currentStep = "equipment";
         matchedEntry = null;
         setTimeout(startScan, 3000);
@@ -160,6 +182,19 @@
       }).catch(err => {
         alert("❌ Failed to copy JSON.");
       });
+    }
+
+    function addToHistory(entryId, rfid) {
+      const historyDiv = document.getElementById("history");
+
+      if (matchedEntries.length === 1) {
+        historyDiv.innerHTML = ""; // Clear "No scans yet"
+      }
+
+      const record = document.createElement("div");
+      record.className = "record";
+      record.innerHTML = `<strong>Entry ID:</strong> ${entryId}<br><strong>RFID:</strong> ${rfid}`;
+      historyDiv.appendChild(record);
     }
   </script>
 </body>
