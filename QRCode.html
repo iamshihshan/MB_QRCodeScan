@@ -184,13 +184,23 @@
     }
 
     function copyJSON() {
-      const jsonText = JSON.stringify(matchedEntries, null, 2);
+      // Create a unique map of entries by entryId
+      const uniqueMap = {};
+      matchedEntries.forEach(entry => {
+        uniqueMap[entry.entryId] = entry;
+      });
+    
+      // Convert back to array
+      const uniqueEntries = Object.values(uniqueMap);
+      const jsonText = JSON.stringify(uniqueEntries, null, 2);
+    
       navigator.clipboard.writeText(jsonText).then(() => {
         alert("✅ Matched entries copied to clipboard.");
       }).catch(err => {
         alert("❌ Failed to copy JSON.");
       });
     }
+
 
     function addToHistory(entryId, rfid) {
       const historyDiv = document.getElementById("history");
