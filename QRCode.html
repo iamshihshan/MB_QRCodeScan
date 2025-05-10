@@ -1,168 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>QR Scanner</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22white%22><path d=%22M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z%22/></svg>">
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
+  <meta charset="UTF-8">
+  <title>Mobile QR Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to bottom, #0a1e3a, #000);
+      color: #fff;
+      text-align: center;
+      padding: 1em;
+    }
 
-        h1 {
-            font-size: 1.8em;
-            margin-bottom: 10px;
-        }
+    h2 {
+      margin-bottom: 0.5em;
+    }
 
-        #qr-reader {
-            width: 100%;
-            max-width: 350px;
-            margin: 0 auto 20px;
-        }
+    #qr-reader {
+      width: 100%;
+      max-width: 320px;
+      margin: auto;
+      border: 2px solid #00c3ff;
+      border-radius: 10px;
+      margin-bottom: 1em;
+    }
 
-        button, input[type="file"] {
-            background: #1e3c72;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            font-size: 1em;
-            border-radius: 8px;
-            margin: 8px 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
+    input[type="file"], button {
+      display: block;
+      margin: 1em auto;
+      padding: 0.8em 1.5em;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-        button:hover, input[type="file"]:hover {
-            background: #2a5298;
-        }
+    input[type="file"] {
+      background: #1a1a1a;
+      color: #00c3ff;
+      border: 1px solid #00c3ff;
+    }
 
-        #output {
-            white-space: pre-wrap;
-            text-align: left;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            max-width: 100%;
-            overflow-x: auto;
-        }
+    button {
+      background: #00c3ff;
+      color: #000;
+      transition: background 0.3s;
+    }
 
-        input[type="file"] {
-            display: inline-block;
-            font-size: 1em;
-        }
+    button:hover {
+      background: #009dcf;
+    }
 
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 1.5em;
-            }
-
-            button, input[type="file"] {
-                width: 90%;
-                font-size: 1em;
-            }
-        }
-    </style>
-    <script src="html5-qrcode.min.js"></script>
+    pre {
+      white-space: pre-wrap;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1em;
+      border-radius: 8px;
+      margin: 1em auto;
+      max-width: 90vw;
+      overflow-x: auto;
+    }
+  </style>
 </head>
 <body>
-    <h1>📷 QR Code Scanner</h1>
+  <h2>📷 Secure QR Code Scanner</h2>
 
-    <input type="file" accept=".json" id="jsonFile" onchange="loadJsonFile(event)">
-    <br>
-    <div id="qr-reader"></div>
-    <button onclick="startScan()">Start Scanning</button>
-    <button onclick="copyJSON()">Copy JSON</button>
+  <input type="file" accept=".json" onchange="loadJsonFile(event)">
+  <div id="qr-reader"></div>
 
-    <pre id="output">Please upload a JSON file to begin.</pre>
+  <button onclick="startScan()">Start Scanning</button>
+  <button onclick="copyJSON()">Copy JSON</button>
 
-    <script>
-        let sourceData = [];
-        let currentStep = "equipment";
-        let matchedEntry = null;
+  <pre id="output">Please upload JSON to begin.</pre>
 
-        function loadJsonFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+  <script src="./html5-qrcode.min.js"></script> <!-- Must exist in same folder -->
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    sourceData = JSON.parse(e.target.result);
-                    document.getElementById("output").textContent = "JSON loaded successfully.\nReady to scan.";
-                } catch (err) {
-                    document.getElementById("output").textContent = "Failed to parse JSON.";
-                }
-            };
-            reader.readAsText(file);
+  <script>
+    let sourceData = [];
+    let matchedEntries = [];
+    let currentStep = "equipment";
+    let matchedEntry = null;
+
+    function loadJsonFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          sourceData = JSON.parse(e.target.result);
+          matchedEntries = [];
+          document.getElementById("output").textContent = "✅ JSON loaded. Ready to scan.";
+        } catch (err) {
+          document.getElementById("output").textContent = "❌ Failed to parse JSON.";
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function startScan() {
+      if (sourceData.length === 0) {
+        alert("Please upload a JSON file first.");
+        return;
+      }
+
+      document.getElementById("output").textContent = "Initializing camera...";
+      const html5QrCode = new Html5Qrcode("qr-reader");
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+          html5QrCode.stop().then(() => {
+            handleScan(qrCodeMessage);
+          });
+        },
+        errorMessage => {}
+      );
+    }
+
+    function handleScan(data) {
+      const output = document.getElementById("output");
+
+      if (currentStep === "equipment") {
+        output.textContent = `📦 Scanned EQUIPMENT: ${data}`;
+        matchedEntry = sourceData.find(entry =>
+          Array.isArray(entry.checkInEquipments) &&
+          entry.checkInEquipments.includes(data)
+        );
+
+        if (matchedEntry) {
+          output.textContent += `\n✅ Match: Entry ID ${matchedEntry.entryId}`;
+          currentStep = "rfid";
+          setTimeout(startScan, 2000);
+        } else {
+          output.textContent += `\n❌ No match. Try again.`;
+          setTimeout(startScan, 2000);
         }
 
-        function startScan() {
-            if (sourceData.length === 0) {
-                alert("Please upload a JSON file first.");
-                return;
-            }
+      } else if (currentStep === "rfid") {
+        output.textContent += `\n🔐 Scanned RFID: ${data}`;
+        matchedEntry.rfid = data;
+        matchedEntries.push(matchedEntry);
+        output.textContent += `\n✅ RFID added to entry.\n\nUpdated Entry:\n${JSON.stringify(matchedEntry, null, 2)}`;
+        currentStep = "equipment";
+        matchedEntry = null;
+        setTimeout(startScan, 3000);
+      }
+    }
 
-            document.getElementById("output").textContent = "Initializing camera...";
-            const html5QrCode = new Html5Qrcode("qr-reader");
-
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: 250 },
-                qrCodeMessage => {
-                    html5QrCode.stop().then(() => {
-                        handleScan(qrCodeMessage);
-                    });
-                },
-                errorMessage => {
-                    // Optional: handle scan error silently
-                }
-            );
-        }
-
-        function handleScan(data) {
-            const output = document.getElementById("output");
-
-            if (currentStep === "equipment") {
-                output.textContent = `📦 Scanned EQUIPMENT: ${data}`;
-                matchedEntry = sourceData.find(entry =>
-                    Array.isArray(entry.checkInEquipments) &&
-                    entry.checkInEquipments.includes(data)
-                );
-
-                if (matchedEntry) {
-                    output.textContent += `\n✅ Match found: Entry ID ${matchedEntry.entryId}`;
-                    currentStep = "rfid";
-                    setTimeout(startScan, 2000);
-                } else {
-                    output.textContent += `\n❌ No match. Try again.`;
-                    setTimeout(startScan, 2000);
-                }
-
-            } else if (currentStep === "rfid") {
-                output.textContent += `\n🔐 Scanned RFID: ${data}`;
-                matchedEntry.rfid = data;
-                output.textContent += `\n✅ RFID added to entry.\n\nUpdated Entry:\n${JSON.stringify(matchedEntry, null, 2)}`;
-                output.textContent += `\n\n📦 Full JSON:\n${JSON.stringify(sourceData, null, 2)}`;
-                currentStep = "equipment";
-                matchedEntry = null;
-                setTimeout(startScan, 3000);
-            }
-        }
-
-        function copyJSON() {
-            const jsonText = JSON.stringify(sourceData, null, 2);
-            navigator.clipboard.writeText(jsonText).then(() => {
-                alert("✅ JSON copied to clipboard!");
-            }).catch(err => {
-                alert("❌ Failed to copy JSON.");
-            });
-        }
-    </script>
+    function copyJSON() {
+      const jsonText = JSON.stringify(matchedEntries, null, 2);
+      navigator.clipboard.writeText(jsonText).then(() => {
+        alert("✅ Copied matched entries to clipboard.");
+      }).catch(err => {
+        alert("❌ Failed to copy JSON.");
+      });
+    }
+  </script>
 </body>
 </html>
