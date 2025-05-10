@@ -167,16 +167,20 @@
           setTimeout(startScan, 2000);
         }
 
-      } else if (currentStep === "rfid") {
-        output.textContent += `\n🔐 Scanned RFID: ${data}`;
-        matchedEntry.rfid = data;
-        matchedEntries.push({ ...matchedEntry });
-        output.textContent += `\n✅ RFID added to entry.\n\nUpdated Entry:\n${JSON.stringify(matchedEntry, null, 2)}`;
-        addToHistory(matchedEntry.entryId, data);
-        currentStep = "equipment";
-        matchedEntry = null;
-        setTimeout(startScan, 3000);
-      }
+        } else if (currentStep === "rfid") {
+          output.textContent += `\n🔐 Scanned RFID: ${data}`;
+          matchedEntry.rfid = data;
+        
+          // Replace existing entry with same entryId in matchedEntries
+          matchedEntries = matchedEntries.filter(entry => entry.entryId !== matchedEntry.entryId);
+          matchedEntries.push({ ...matchedEntry });
+        
+          output.textContent += `\n✅ RFID added to entry.\n\nUpdated Entry:\n${JSON.stringify(matchedEntry, null, 2)}`;
+          addToHistory(matchedEntry.entryId, data);
+          currentStep = "equipment";
+          matchedEntry = null;
+          setTimeout(startScan, 3000);
+        }
     }
 
     function copyJSON() {
@@ -190,16 +194,27 @@
 
     function addToHistory(entryId, rfid) {
       const historyDiv = document.getElementById("history");
-
+    
       if (matchedEntries.length === 1) {
         historyDiv.innerHTML = "";
       }
-
+    
+      // Check if a record for this entryId already exists
+      const existingRecord = historyDiv.querySelector(`[data-entry-id="${entryId}"]`);
+      if (existingRecord) {
+        existingRecord.innerHTML = `<strong>Entry ID:</strong> ${entryId}<br><strong>RFID:</strong> ${rfid}`;
+        return;
+      }
+    
+      // Create and append new record
       const record = document.createElement("div");
       record.className = "record";
+      record.setAttribute("data-entry-id", entryId);
       record.innerHTML = `<strong>Entry ID:</strong> ${entryId}<br><strong>RFID:</strong> ${rfid}`;
+    
       historyDiv.appendChild(record);
     }
+
   </script>
 </body>
 </html>
