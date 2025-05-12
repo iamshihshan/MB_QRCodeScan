@@ -94,6 +94,7 @@
   <div id="qr-reader"></div>
   <button onclick="startScan()">🚀 Start Scanning</button>
   <button onclick="copyJSON()">📋 Copy Matched JSON</button>
+  <button onclick="downloadJSON()">💾 Download Matched JSON</button>
 
   <pre id="output">Please upload a JSON file to begin.</pre>
 
@@ -199,6 +200,25 @@
       }).catch(err => {
         alert("❌ Failed to copy JSON.");
       });
+    }
+
+    function downloadJSON() {
+      const uniqueMap = {};
+      matchedEntries.forEach(entry => {
+        uniqueMap[entry.entryId] = entry;
+      });
+      const uniqueEntries = Object.values(uniqueMap);
+      const jsonText = JSON.stringify(uniqueEntries, null, 2);
+      const blob = new Blob([jsonText], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+    
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "matched_entries.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
 
